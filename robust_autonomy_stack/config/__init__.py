@@ -1,7 +1,7 @@
 # Configuration schemas and loading utilities
 
 from .schema import (
-    CarlaConfig,
+    SimulatorConfig,
     SensorConfig,
     ScenarioConfig,
     StackConfig,
@@ -9,7 +9,7 @@ from .schema import (
 )
 
 __all__ = [
-    "CarlaConfig",
+    "SimulatorConfig",
     "SensorConfig",
     "ScenarioConfig",
     "StackConfig",

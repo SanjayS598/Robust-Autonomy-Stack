@@ -7,10 +7,11 @@ from pydantic import BaseModel, Field, field_validator
 import yaml
 
 
-class CarlaConfig(BaseModel):
-    # Configuration for connecting to CARLA server
+class SimulatorConfig(BaseModel):
+    # MetaDrive simulator configuration
     
-    host: str = Field(default="localhost", description="CARLA server host")
+    use_render: bool = Field(default=False, description="Enable rendering window")
+    map_name: str = Field(default="X", description="Map type (X, O, C, S, R, T)")
     port: int = Field(default=2000, description="CARLA server port")
     timeout_s: float = Field(default=10.0, description="Connection timeout in seconds")
     synchronous: bool = Field(default=True, description="Use synchronous mode")
@@ -31,21 +32,18 @@ class SensorConfig(BaseModel):
 
 
 class ScenarioConfig(BaseModel):
-    # Defines a test scenario: map, weather, NPC counts, scripted events, noise
+    # Defines a test scenario: map, traffic, scripted events, noise
     
     name: str = Field(description="Scenario name")
-    map: str = Field(default="Town01", description="CARLA map/town name")
-    weather: str = Field(default="ClearNoon", description="Weather preset")
+    map_type: str = Field(default="X", description="Map type (X, O, C, S, R, T)")
+    traffic_density: float = Field(default=0.1, ge=0.0, le=1.0, description="Traffic density")
     
-    # Ego spawn
-    ego_spawn_x: float = Field(description="Ego spawn X coordinate")
-    ego_spawn_y: float = Field(description="Ego spawn Y coordinate")
-    ego_spawn_z: float = Field(default=0.5, description="Ego spawn Z coordinate")
-    ego_spawn_yaw: float = Field(default=0.0, description="Ego spawn yaw in degrees")
+    # Ego spawn (optional - MetaDrive will use map defaults if not specified)
+    ego_spawn_lane: Optional[int] = Field(default=None, description="Starting lane index")
     
-    # NPC configuration
-    num_vehicles: int = Field(default=20, description="Number of NPC vehicles")
-    num_walkers: int = Field(default=10, description="Number of pedestrians")
+    # Traffic configuration
+    num_agents: int = Field(default=10, description="Number of traffic agents")
+    agent_policy: str = Field(default="IDM", description="Agent driving policy (IDM, Manual)")
     
     # Scripted events (optional)
     scripted_events: List[Dict[str, Any]] = Field(default_factory=list, description="Scripted scenario events")

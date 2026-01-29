@@ -1,4 +1,4 @@
-# Command-line interface for CARLA Robust Autonomy Stack
+# Command-line interface for Robust Autonomy Stack
 
 import argparse
 import sys
@@ -43,8 +43,8 @@ def replay_run(args):
 def main():
     # Main entry point - parse commands and dispatch to handlers
     parser = argparse.ArgumentParser(
-        prog="carla-robust-autonomy-stack",
-        description="CARLA Robust Autonomy Stack - Self-healing autonomy with RL red-teaming"
+        prog="robust-autonomy-stack",
+        description="Robust Autonomy Stack - Self-healing autonomy with RL red-teaming"
     )
     
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

@@ -1,8 +1,11 @@
 #!/bin/bash
-# CARLA server launch script with low-fidelity settings
+# CARLA server launch script with low-fidelity, headless settings
+# This script is used inside the CARLA container
 
-# TODO: Implement in Phase 1
-# Will include flags for:
-# - Offscreen rendering
-# - Low quality preset
-# - Fixed FPS mode
+# Launch CARLA with optimal settings for headless development
+./CarlaUE4.sh \
+  -RenderOffScreen \
+  -quality-level=Low \
+  -nosound \
+  -carla-rpc-port=2000 \
+  -carla-streaming-port=2001

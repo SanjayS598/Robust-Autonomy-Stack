@@ -17,5 +17,6 @@ stable-baselines3>=2.0.0
 gymnasium>=0.29.0
 
 # CARLA Python API
-# Note: Install manually from CARLA release or via:
-# pip install carla==0.9.15
+# Note: CARLA Python API has platform-specific native libraries (.so files)
+# that don't work on macOS. We'll run the Python client in Docker alongside
+# the CARLA server. See docker/compose.yml for the client container setup.

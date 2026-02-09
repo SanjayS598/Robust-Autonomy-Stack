@@ -8,25 +8,35 @@ from metadrive import MetaDriveEnv
 
 def check_display_available() -> bool:
     # Check if a display is available for rendering
-    # For SSH or headless sessions, return False
+    # For SSH sessions, definitely no display
     if os.environ.get('SSH_CONNECTION') or os.environ.get('SSH_CLIENT'):
         return False
+    
+    # On Linux, check DISPLAY variable
     if os.environ.get('DISPLAY'):
         return True
-    # On macOS, WindowServer runs but we may not have GUI access
-    # Check if we're in a proper terminal session with GUI
+    
+    # On macOS, check if we have GUI access
     if os.name == 'posix':
         try:
             import subprocess
-            # Check if we have access to display (not just WindowServer running)
-            result = subprocess.run(['ps', '-p', str(os.getppid()), '-o', 'comm='], 
-                                  capture_output=True, text=True, timeout=1)
-            parent = result.stdout.strip()
-            # If parent is Terminal.app or similar GUI terminal, likely have display
-            if 'Terminal' in parent or 'iTerm' in parent:
-                return True
+            import platform
+            
+            # On macOS, check if WindowServer is accessible
+            if platform.system() == 'Darwin':
+                # Check if we can access the window server
+                result = subprocess.run(
+                    ['launchctl', 'managername'],
+                    capture_output=True,
+                    text=True,
+                    timeout=1
+                )
+                # If we're in Aqua (GUI) session, we have display
+                if 'Aqua' in result.stdout:
+                    return True
         except:
             pass
+    
     return False
 
 
@@ -82,8 +92,37 @@ class MetaDriveAdapter:
         
     def reset(self) -> Tuple[np.ndarray, Dict[str, Any]]:
         # Reset environment and return initial observation and info
-        self.current_obs, self.current_info = self.env.reset()
-        return self.current_obs, self.current_info
+        try:
+            self.current_obs, self.current_info = self.env.reset()
+            return self.current_obs, self.current_info
+        except Exception as e:
+            if "window" in str(e).lower() and self.env.config.get("use_render", False):
+                print(f"\nWarning: Could not open rendering window: {e}")
+                print("This can happen in VS Code terminal or when Panda3D can't access WindowServer.")
+                print("Falling back to headless mode...\n")
+                
+                # Close and recreate without rendering
+                from metadrive.engine.engine_utils import close_engine
+                try:
+                    close_engine()
+                except:
+                    pass
+                
+                # Get original config and disable rendering
+                config = {
+                    "use_render": False,
+                    "manual_control": False,
+                    "map": self.env.config.get("map", "X"),
+                    "start_seed": self.env.config.get("start_seed", 0),
+                    "num_scenarios": self.env.config.get("num_scenarios", 1),
+                    "traffic_density": self.env.config.get("traffic_density", 0.1),
+                }
+                
+                self.env = MetaDriveEnv(config)
+                self.current_obs, self.current_info = self.env.reset()
+                return self.current_obs, self.current_info
+            else:
+                raise
     
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict[str, Any]]:
         # Execute action and return (observation, reward, terminated, truncated, info)
